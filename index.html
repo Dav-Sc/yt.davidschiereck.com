@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <body style="background-color: darkslategrey;">
+    <!-- Input field for the YouTube URL -->
+    <input type="text" id="youtube-url-input" placeholder="Enter YouTube share link here" />
+    <button onclick="loadAndPlayVideo()">Load & Play Video</button>
+    <br />
+    <br />
+
+    <!-- The <iframe> (and video player) will replace this <div> tag. -->
+    <div id="player"></div>
+
+    <script>
+      // This code loads the IFrame Player API code asynchronously.
+      var tag = document.createElement('script');
+
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      var player; // Define the player object
+
+      // Function to update the youtubeURL with the input field's value and play video
+      function loadAndPlayVideo() {
+        var youtubeURL = document.getElementById('youtube-url-input').value;
+        var videoId = extractYouTubeID(youtubeURL); // Extract the video ID from the youtubeURL
+        if (videoId) {
+          if (player) {
+            player.loadVideoById(videoId);
+          } else {
+            player = new YT.Player('player', {
+              height: '390',
+              width: '640',
+              videoId: videoId,
+              playerVars: {
+                'autoplay': 1, // Autoplay the video
+                'playsinline': 1
+              },
+              events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+              }
+            });
+          }
+        } else {
+          console.error('Invalid YouTube URL');
+        }
+      }
+
+      // Function to extract YouTube ID from a URL
+      function extractYouTubeID(url) {
+        if (!url) {
+          console.error('The YouTube URL is undefined');
+          return null;
+        }
+        var regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
+        var match = url.match(regExp);
+        if (match && match[2].length == 11) {
+          return match[2];
+        } else {
+          console.error('Invalid YouTube URL');
+          return null;
+        }
+      }
+
+      // The API will call this function when the video player is ready.
+      function onPlayerReady(event) {
+        event.target.playVideo();
+      }
+
+      // The API calls this function when the player's state changes.
+      var done = false;
+      function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING && !done) {
+          setTimeout(stopVideo, 6000);
+          done = true;
+        }
+      }
+      function stopVideo() {
+        player.stopVideo();
+      }
+    </script>
+  </body>
+</html>
